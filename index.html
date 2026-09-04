@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>🎁 Cadeau mystère</title>
+<style>
+:root{--bg:#090b16;--card:#151a2d;--gold:#ffd166}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 15%,#27335d 0,#090b16 58%);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:grid;place-items:center;overflow:hidden}
+.card{width:min(94vw,480px);padding:24px 18px 28px;text-align:center}
+.kicker{font-size:12px;letter-spacing:4px;text-transform:uppercase;opacity:.65}.title{font-size:34px;margin:8px 0 2px;font-weight:900}.sub{opacity:.7;margin:0 0 20px}
+.wheelbox{position:relative;width:min(82vw,350px);aspect-ratio:1;margin:auto;filter:drop-shadow(0 18px 35px #0008)}
+canvas{width:100%;height:100%;display:block}.pointer{position:absolute;top:-4px;left:50%;transform:translateX(-50%);z-index:3;font-size:38px;filter:drop-shadow(0 3px 3px #000)}
+button{margin-top:24px;width:min(82vw,350px);padding:17px;border:0;border-radius:18px;background:linear-gradient(135deg,#ffe08a,#ffad32);font-size:18px;font-weight:900;color:#111;box-shadow:0 12px 30px #0005}
+button:disabled{opacity:.55}.status{height:34px;margin-top:15px;font-size:18px;font-weight:800}.result{display:none;margin:14px auto 0;padding:16px;border-radius:20px;background:#ffffff12;border:1px solid #ffffff16}.flag{font-size:48px}.city{font-size:39px;font-weight:950}.reset{display:none;background:#ffffff14;color:#fff;margin-top:10px}
+.confetti{position:fixed;top:-20px;width:8px;height:15px;animation:fall 2.4s linear forwards;z-index:9}@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}} 
+</style>
+</head>
+<body><main class="card">
+<div class="kicker">🎁 cadeau mystère</div><div class="title">À toi de jouer</div>
+<p class="sub">Une seule des trois villes sera ton souvenir.</p>
+<div class="wheelbox"><div class="pointer">▼</div><canvas id="wheel" width="900" height="900"></canvas></div>
+<button id="spin">🎰 LANCER LA ROUE</button>
+<div class="status" id="status">Prêt ?</div>
+<div class="result" id="result"><div class="flag" id="flag"></div><div class="city" id="city"></div><div>🎉 C'est ton cadeau !</div></div>
+<button class="reset" id="reset">↩️ Refaire un tirage</button>
+</main>
+<script>
+const items=[["ROTTERDAM","🇳🇱"],["ANVERS","🇧🇪"],["BRUGES","🇧🇪"]];
+const c=document.getElementById("wheel"),ctx=c.getContext("2d"),N=items.length,arc=2*Math.PI/N;
+let rotation=0,busy=false;
+function draw(){
+ ctx.clearRect(0,0,900,900);ctx.save();ctx.translate(450,450);
+ for(let i=0;i<N;i++){let a=i*arc+rotation-arc/2;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,390,a,a+arc);ctx.closePath();ctx.fillStyle=i%2?"#343b6b":"#202746";ctx.fill();ctx.strokeStyle="#ffd166";ctx.lineWidth=5;ctx.stroke();
+ ctx.save();ctx.rotate(a+arc/2);ctx.textAlign="right";ctx.fillStyle="#fff";ctx.font="900 42px -apple-system,BlinkMacSystemFont,sans-serif";ctx.fillText(items[i][0],355,15);ctx.restore()}
+ ctx.beginPath();ctx.arc(0,0,70,0,2*Math.PI);ctx.fillStyle="#0d1020";ctx.fill();ctx.strokeStyle="#ffd166";ctx.lineWidth=7;ctx.stroke();ctx.fillStyle="#ffd166";ctx.font="bold 42px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("🎁",0,2);ctx.restore();
+}
+draw();
+function spin(){
+ if(busy)return;busy=true;document.getElementById("spin").disabled=true;document.getElementById("reset").style.display="none";document.getElementById("result").style.display="none";
+ const winner=Math.floor(Math.random()*N), target=(3*Math.PI/2)-(winner*arc); 
+ let delta=(target-rotation)%(2*Math.PI); if(delta<0)delta+=2*Math.PI; delta+=Math.PI*2*(6+Math.floor(Math.random()*3));
+ const start=rotation,end=rotation+delta,dur=4800,t0=performance.now();
+ document.getElementById("status").textContent="🎰 La roue tourne…";
+ function anim(t){let p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,4);rotation=start+(end-start)*e;draw();if(p<1)requestAnimationFrame(anim);else reveal(winner)}
+ requestAnimationFrame(anim);
+}
+function reveal(i){const [name,flag]=items[i];document.getElementById("status").textContent="✨ Résultat !";document.getElementById("flag").textContent=flag;document.getElementById("city").textContent=name;document.getElementById("result").style.display="block";document.getElementById("reset").style.display="inline-block";confetti();busy=false}
+document.getElementById("spin").onclick=spin;document.getElementById("reset").onclick=()=>location.reload();
+function confetti(){for(let i=0;i<100;i++){const x=document.createElement("i");x.className="confetti";x.style.left=Math.random()*100+"vw";x.style.background=`hsl(${Math.random()*360} 90% 65%)`;x.style.animationDelay=Math.random()*.8+"s";document.body.appendChild(x);setTimeout(()=>x.remove(),3200)}}
+</script></body></html>
